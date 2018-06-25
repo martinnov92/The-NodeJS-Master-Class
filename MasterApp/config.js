@@ -8,6 +8,7 @@ const environments = {};
 environments.staging = {
     http: 3000,
     https: 3001,
+    maxChecks: 5,
     envName: 'staging',
     hashingSecret: 'martinkova skvela aplikace',
 };
@@ -16,6 +17,7 @@ environments.staging = {
 environments.production = {
     http: 80,
     https: 443,
+    maxChecks: 5,
     envName: 'production',
     hashingSecret: 'martinkova skvela aplikace',
 };

@@ -3,6 +3,7 @@
 */
 
 const _data = require('./data');
+const config = require('../config');
 const helpers = require('./helpers');
 
 // definování handlerů pro router
@@ -365,6 +366,263 @@ handlers._tokens.verifyToken = (id, phone, callback) => {
             callback(false);
         }
     });
+};
+
+// Checks
+handlers.checks = (data, callback) => {
+    const acceptableMethods = ['post', 'get', 'put', 'delete'];
+
+    if (acceptableMethods.indexOf(data.method) > -1) {
+        handlers._checks[data.method](data, callback);
+    } else {
+        // 405 - method not allowed
+        callback(405);
+    }
+}
+
+handlers._checks = {};
+
+// Checks - post
+// required data: protocol, url, method, successCodes, timeoutSeconds
+// optional data: none
+handlers._checks.post = (data, callback) => {
+    // validate inputs
+    const url = ((typeof data.payload.url === 'string') && (data.payload.url.trim().length > 0)) ? data.payload.url.trim() : false;
+    const protocol = ((typeof data.payload.protocol === 'string') && (['https', 'http'].indexOf(data.payload.protocol) > -1)) ? data.payload.protocol : false;
+    const method = ((typeof data.payload.method === 'string') && (['post', 'get', 'put', 'delete'].indexOf(data.payload.method) > -1)) ? data.payload.method : false;
+    const successCodes = ((typeof data.payload.successCodes === 'object') && (data.payload.successCodes instanceof Array && data.payload.successCodes.length > 0)) ? data.payload.successCodes : false;
+    const timeoutSeconds = ((typeof data.payload.timeoutSeconds === 'number') && (data.payload.timeoutSeconds % 1 === 0) && (data.payload.timeoutSeconds >= 1 && data.payload.timeoutSeconds <= 5)) ? data.payload.timeoutSeconds : false;
+
+    if (protocol && url && method && successCodes && timeoutSeconds) {
+        // získání tokenu z hlavičky
+        const token = typeof data.headers.token === 'string' ? data.headers.token : false;
+
+        // získání uživatele z tokenu
+        _data.read('tokens', token, (err, tokenData) => {
+            if (!err && tokenData) {
+                const userPhone = tokenData.phone;
+
+                // získání uživatele
+                _data.read('users', userPhone, (err, userData) => {
+                    if (!err && userData) {
+                        // zkontrolovat jestli už uživatel má uloženy nějaké checks
+                        const userChecks = (typeof userData.checks === 'object' && userData.checks instanceof Array) ? userData.checks : []; 
+
+                        // zkontrolovat množství checks
+                        if (userChecks.length < config.maxChecks) {
+                            // vytvoření náhodného id pro check
+                            const checkId = helpers.createRandomString(20);
+
+                            // vytvořit check object a přidat uživatelův telefon
+                            const checkObject = {
+                                id: checkId,
+                                url,
+                                protocol,
+                                method,
+                                timeoutSeconds,
+                                successCodes,
+                                phone: userPhone,
+                            };
+
+                            // uložit checks na disk
+                            _data.create('checks', checkId, checkObject, (err) => {
+                                if (!err) {
+                                    // uložit checkId na uživatelův účet
+                                    userData.checks = userChecks;
+                                    userData.checks.push(checkId);
+
+                                    // uložit nová data
+                                    _data.update('users', userPhone, userData, (err) => {
+                                        if (!err) {
+                                            // vrátit data o novém záznamu
+                                            callback(200, checkObject);  
+                                        } else {
+                                            console.log(err);
+                                            callback(500, { 'Error': 'Nebylo možné vytvořit záznam.' });
+                                        }
+                                    });
+                                } else {
+                                    console.log(err);
+                                    callback(500, { 'Error': 'Nebylo možné vytvořit záznam.' });
+                                }
+                            })
+                        } else {
+                            // má víc než config.maxcheckes záznamů, není možné pokračovat
+                            callback(400, { 'Error': `Uživatel má uložen maximální počet záznamů (${config.maxChecks}).` });
+                        }
+                    } else {
+                        // 403 - unauthorized
+                        callback(403);
+                    }
+                });
+            } else {
+                callback(403);
+            }
+        });
+    } else {
+        callback(400, { 'Error': 'Chybějící povinná položka.' });
+    }
+};
+
+// Checks - get
+// required data: id
+// optional data: none
+handlers._checks.get = (data, callback) => {
+    const id = typeof data.queryStringObject.id === 'string' && data.queryStringObject.id.trim().length === 20 ? data.queryStringObject.id.trim() : false;
+
+    if (id) {
+        // vyhledat záznam
+        _data.read('checks', id, (err, checksData) => {
+            if (!err && checksData) {
+                // získat token z hlavičky request
+                const token = typeof data.headers.token === 'string' ? data.headers.token : false;
+
+                handlers._tokens.verifyToken(token, checksData.phone, (valid) => {
+                    if (valid) {
+                        // pokud je token validní -> vrátit záznam
+                        callback(200, checksData);
+                    } else {
+                        callback(403, { 'Error': 'Chybějící token v headers, nebo token není platný.' });
+                    }
+                });
+            } else {
+                callback(404);
+            }
+        })
+    } else {
+        callback(400, { 'Error': 'Chybějící povinná položka.' });
+    }
+};
+
+// Checks - put
+// required data: id
+// optional data: protocol, url, method, successCodes, timeoutSeconds
+handlers._checks.put = (data, callback) => {
+    const id = typeof data.queryStringObject.id === 'string' && data.queryStringObject.id.trim().length === 20 ? data.queryStringObject.id.trim() : false;
+
+    // Check for optional fields
+    const protocol = typeof(data.payload.protocol) == 'string' && ['https','http'].indexOf(data.payload.protocol) > -1 ? data.payload.protocol : false;
+    const url = typeof(data.payload.url) == 'string' && data.payload.url.trim().length > 0 ? data.payload.url.trim() : false;
+    const method = typeof(data.payload.method) == 'string' && ['post','get','put','delete'].indexOf(data.payload.method) > -1 ? data.payload.method : false;
+    const successCodes = typeof(data.payload.successCodes) == 'object' && data.payload.successCodes instanceof Array && data.payload.successCodes.length > 0 ? data.payload.successCodes : false;
+    const timeoutSeconds = typeof(data.payload.timeoutSeconds) == 'number' && data.payload.timeoutSeconds % 1 === 0 && data.payload.timeoutSeconds >= 1 && data.payload.timeoutSeconds <= 5 ? data.payload.timeoutSeconds : false;
+
+    if(id){
+        // Error if nothing is sent to update
+        if(protocol || url || method || successCodes || timeoutSeconds){
+            // Lookup the check
+            _data.read('checks', id, (err,checkData) => {
+                if(!err && checkData){
+                    // Get the token that sent the request
+                    const token = typeof(data.headers.token) == 'string' ? data.headers.token : false;
+                    // Verify that the given token is valid and belongs to the user who created the check
+                    handlers._tokens.verifyToken(token, checkData.phone, (tokenIsValid) => {
+                        if(tokenIsValid){
+                            // Update check data where necessary
+                            if(protocol) {
+                                checkData.protocol = protocol;
+                            }
+
+                            if(url) {
+                                checkData.url = url;
+                            }
+
+                            if(method) {
+                                checkData.method = method;
+                            }
+
+                            if(successCodes) {
+                                checkData.successCodes = successCodes;
+                            }
+
+                            if(timeoutSeconds) {
+                                checkData.timeoutSeconds = timeoutSeconds;
+                            }
+
+                            // Store the new updates
+                            _data.update('checks', id, checkData, (err) => {
+                                if(!err) {
+                                    callback(200, checkData);
+                                } else {
+                                    callback(500, {'Error' : 'Záznam není možné aktualizovat.'});
+                                }
+                            });
+                        } else {
+                            callback(403);
+                        }
+                    });
+                } else {
+                    callback(400, {'Error' : 'Záznam neexistuje.'});
+                }
+            });
+        } else {
+            callback(400, {'Error' : 'Chybějící položky k aktualizaci.'});
+        }
+    } else {
+        callback(400, {'Error' : 'Chybějící povinná položka.'});
+    }
+};
+
+// Checks - delete
+// Required data: id
+// Optional data: none
+handlers._checks.delete = (data, callback) => {
+    // Check that id is valid
+    const id = typeof(data.queryStringObject.id) == 'string' && data.queryStringObject.id.trim().length == 20 ? data.queryStringObject.id.trim() : false;
+
+    if(id){
+        // Lookup the check
+        _data.read('checks', id, (err, checkData) => {
+            if(!err && checkData){
+                // Get the token that sent the request
+                const token = typeof(data.headers.token) == 'string' ? data.headers.token : false;
+                // Verify that the given token is valid and belongs to the user who created the check
+                handlers._tokens.verifyToken(token, checkData.phone, (valid) => {
+                    if(valid){
+                        // Delete the check data
+                        _data.delete('checks', id, (err) => {
+                            if(!err){
+                                // Lookup the user's object to get all their checks
+                                _data.read('users', checkData.phone, (err, userData) => {
+                                    if(!err){
+                                        const userChecks = typeof(userData.checks) == 'object' && userData.checks instanceof Array ? userData.checks : [];
+
+                                        // Remove the deleted check from their list of checks
+                                        const checkPosition = userChecks.indexOf(id);
+                                        if(checkPosition > -1){
+                                            // Re-save the user's data
+                                            userChecks.splice(checkPosition,1);
+                                            userData.checks = userChecks;
+
+                                            _data.update('users', checkData.phone, userData, (err) => {
+                                                if(!err){
+                                                    callback(200);
+                                                } else {
+                                                    callback(500,{'Error' : 'Could not update the user.'});
+                                                }
+                                            });
+                                        } else {
+                                            callback(500,{"Error" : "Could not find the check on the user's object, so could not remove it."});
+                                        }
+                                    } else {
+                                        callback(500,{"Error" : "Could not find the user who created the check, so could not remove the check from the list of checks on their user object."});
+                                    }
+                                });
+                            } else {
+                                callback(500,{"Error" : "Could not delete the check data."})
+                            }
+                        });
+                    } else {
+                        callback(403);
+                    }
+                });
+            } else {
+                callback(400,{"Error" : "The check ID specified could not be found"});
+            }
+        });
+    } else {
+        callback(400,{"Error" : "Missing valid id"});
+    }
 };
 
 // route na pingnutí aplikace, která ověří že aplikace funguje, nebo nefunguje
