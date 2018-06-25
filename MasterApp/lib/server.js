@@ -56,7 +56,7 @@ server.unifiedServer = function(req, res) {
     });
 
     // ukončení přenusu streamů
-    req.on('end', function() {
+    req.on('end', () => {
         // ukončení zápisu do bufferu
         // decoder.end() => z dokumentace NodeJS, je potřeba to zavolat, protože StringDecoder má svůj vnitřní buffer, ve kterém si drží zbývající input data
         buffer += decoder.end();
