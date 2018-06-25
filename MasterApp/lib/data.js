@@ -97,5 +97,22 @@ lib.delete = function(dir, file, callback) {
     });
 };
 
+// seznam všech položek a adresářů
+lib.list = function(dir, callback) {
+    fs.readdir(`${this.baseDir}/${dir}`, (err, data) => {
+        if (!err && data && data.length > 0) {
+            const trimmedFileNames = [];
+
+            data.forEach((fileName) => {
+                trimmedFileNames.push(fileName.replace('.json', ''));
+            });
+
+            callback(false, trimmedFileNames);
+        } else {
+            callback(err, data);
+        }
+    });
+};
+
 // export
 module.exports = lib;
