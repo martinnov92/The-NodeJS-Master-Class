@@ -5,7 +5,8 @@
 // dependencies
 const http = require('http');
 const url = require('url'); // url module pro parsování a práci s url
-const StringDecoder = require('string_decoder').StringDecoder;
+const StringDecoder = require('string_decoder').StringDecoder; // string decoder pro práci s Buffer
+const config = require('./config');
 
 const server = http.createServer(function(req, res) {
     // získat url a zparsovat
@@ -72,8 +73,8 @@ const server = http.createServer(function(req, res) {
 });
 
 // port 3000
-server.listen(3000, function() {
-    console.log('The server is listening on port 3000.');
+server.listen(config.port, function() {
+    console.log(`The server is listening on port ${config.port}. Env name: ${config.envName}`);
 });
 
 // definování handlerů pro router
