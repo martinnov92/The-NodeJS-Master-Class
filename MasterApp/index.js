@@ -3,14 +3,33 @@
 */
 
 // dependencies
-const http = require('http');
+const fs = require('fs');
 const url = require('url'); // url module pro parsování a práci s url
+const http = require('http');
+const https = require('https');
 const StringDecoder = require('string_decoder').StringDecoder; // string decoder pro práci s Buffer
 const config = require('./config');
 
-const server = http.createServer(function(req, res) {
-    // získat url a zparsovat
+// nastavení https serveru, bez poskytnutí klíče a certifikátu nebude https fungovat
+const httpsServerOptions = {
+    'key': fs.readFileSync('../Section 3/Adding HTTPS support/https/key.pem', 'utf8'),
+    'cert': fs.readFileSync('../Section 3/Adding HTTPS support/https/cert.pem', 'utf8')
+};
 
+// inicializace HTTP serveru
+const httpServer = http.createServer(unifiedServer);
+httpServer.listen(config.http, () => {
+    console.log(`The server is listening on port ${config.http}.`);
+});
+
+// inicializace HTTPS serveru
+const httpsServer = https.createServer(httpsServerOptions, unifiedServer);
+httpsServer.listen(config.https, () => {
+    console.log(`The server is listening on port ${config.https}.`);
+});
+
+// logika serveru pro http a https
+function unifiedServer(req, res) {
     // získat headers jako object
     const { headers } = req;
 
@@ -70,12 +89,7 @@ const server = http.createServer(function(req, res) {
             console.log(`Returning this response: ${statusCode} (status code), ${payloadString}`);
         });
     });
-});
-
-// port 3000
-server.listen(config.port, function() {
-    console.log(`The server is listening on port ${config.port}. Env name: ${config.envName}`);
-});
+};
 
 // definování handlerů pro router
 const handlers = {};
@@ -94,3 +108,6 @@ handlers.notFound = function(data, callback) {
 const router = {
     'sample': handlers.sample,
 };
+
+// ! OPENSSL vytvoření certifikátu
+// openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
