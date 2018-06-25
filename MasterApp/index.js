@@ -8,9 +8,11 @@ const url = require('url'); // url module pro parsování a práci s url
 const http = require('http');
 const https = require('https');
 const StringDecoder = require('string_decoder').StringDecoder; // string decoder pro práci s Buffer
-const config = require('./config');
 
-// nastavení https serveru, bez poskytnutí klíče a certifikátu nebude https fungovat
+const config = require('./config');
+const _data = require('./lib/data');
+
+// ! nastavení https serveru, bez poskytnutí klíče a certifikátu nebude https fungovat
 const httpsServerOptions = {
     'key': fs.readFileSync('../Section 3/Adding HTTPS support/https/key.pem', 'utf8'),
     'cert': fs.readFileSync('../Section 3/Adding HTTPS support/https/cert.pem', 'utf8')
@@ -96,13 +98,13 @@ const handlers = {};
 
 // route na pingnutí aplikace, která ověří že aplikace funguje, nebo nefunguje
 // callback http status code a payload (paylod === object)
-handlers.ping = function(data, callback) {
+handlers.ping = (data, callback) => {
     // 200 - OK
     callback(200);
 };
 
 // NOT FOUND 404 handlers
-handlers.notFound = function(data, callback) {
+handlers.notFound = (data, callback) => {
     callback(404);
 };
 
