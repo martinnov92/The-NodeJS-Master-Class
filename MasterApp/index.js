@@ -94,9 +94,11 @@ function unifiedServer(req, res) {
 // definování handlerů pro router
 const handlers = {};
 
-handlers.sample = function(data, callback) {
-    // callback http status code a payload (paylod === object)
-    callback(406, { 'name': 'sample handler' });
+// route na pingnutí aplikace, která ověří že aplikace funguje, nebo nefunguje
+// callback http status code a payload (paylod === object)
+handlers.ping = function(data, callback) {
+    // 200 - OK
+    callback(200);
 };
 
 // NOT FOUND 404 handlers
@@ -106,7 +108,7 @@ handlers.notFound = function(data, callback) {
 
 // router
 const router = {
-    'sample': handlers.sample,
+    'ping': handlers.ping,
 };
 
 // ! OPENSSL vytvoření certifikátu
