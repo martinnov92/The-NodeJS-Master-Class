@@ -9,6 +9,7 @@ environments.staging = {
     http: 3000,
     https: 3001,
     envName: 'staging',
+    hashingSecret: 'martinkova skvela aplikace',
 };
 
 // produkce
@@ -16,6 +17,7 @@ environments.production = {
     http: 80,
     https: 443,
     envName: 'production',
+    hashingSecret: 'martinkova skvela aplikace',
 };
 
 // které prostředí se použije?

@@ -9,8 +9,10 @@ const http = require('http');
 const https = require('https');
 const StringDecoder = require('string_decoder').StringDecoder; // string decoder pro práci s Buffer
 
+// moje soubory
 const config = require('./config');
-const _data = require('./lib/data');
+const helpers = require('./lib/helpers');
+const handlers = require('./lib/handlers');
 
 // ! nastavení https serveru, bez poskytnutí klíče a certifikátu nebude https fungovat
 const httpsServerOptions = {
@@ -72,8 +74,8 @@ function unifiedServer(req, res) {
             method,
             headers,
             trimmedPath,
-            payload: buffer,
             queryStringObject,
+            payload: helpers.parseJsonToObject(buffer),
         };
 
         // route request pro daný handler přiřazený v handlers
@@ -93,24 +95,10 @@ function unifiedServer(req, res) {
     });
 };
 
-// definování handlerů pro router
-const handlers = {};
-
-// route na pingnutí aplikace, která ověří že aplikace funguje, nebo nefunguje
-// callback http status code a payload (paylod === object)
-handlers.ping = (data, callback) => {
-    // 200 - OK
-    callback(200);
-};
-
-// NOT FOUND 404 handlers
-handlers.notFound = (data, callback) => {
-    callback(404);
-};
-
 // router
 const router = {
     'ping': handlers.ping,
+    'users': handlers.users,
 };
 
 // ! OPENSSL vytvoření certifikátu

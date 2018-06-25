@@ -4,6 +4,7 @@
 
 const fs = require('fs');
 const path = require('path'); // normalize paths to different paths
+const helpers = require('./helpers');
 
 // container pro modul
 const lib = {};
@@ -12,7 +13,6 @@ lib.baseDir = path.join(__dirname, '/../.data/');
 // zápis do soubour
 lib.create = function(dir, file, data, callback) {
     // otevřít soubor pro zápis
-    // TODO: 'wx' -> flags | najít v dokumentaci
     fs.open(`${lib.baseDir}${dir}/${file}.json`, 'wx', (err, fileDescriptor) => {
         if (!err && fileDescriptor) {
             // convert data to string
@@ -41,7 +41,12 @@ lib.create = function(dir, file, data, callback) {
 // čtení dat ze souboru
 lib.read = function(dir, file, callback) {
     fs.readFile(`${lib.baseDir}${dir}/${file}.json`, 'utf8', (err, data) => {
-        callback(err, data);
+        if (!err && data) {
+            const parsedData = helpers.parseJsonToObject(data);
+            callback(false, parsedData);
+        } else {
+            callback(err, data);
+        }
     });
 };
 
@@ -54,7 +59,6 @@ lib.update = function(dir, file, data, callback) {
             const stringData = JSON.stringify(data);
 
             // truncate the file
-            // TODO: najít info o fs.ftruncate
             fs.ftruncate(fileDescriptor, (err) => {
                 if (!err) {
                     // zapsat do souboru
