@@ -6,7 +6,9 @@ const fs = require('fs');
 const url = require('url');
 const path = require('path');
 const http = require('http');
+const util = require('util');
 const https = require('https');
+const debug = util.debuglog('workers');
 
 const _data = require('./data');
 const _logs = require('./logs');
@@ -33,12 +35,12 @@ workers.gatherAllChecks = function() {
                         // předat data do validátoru
                         this.validateCheckData(originalCheckData);
                     } else {
-                        console.log(`WORKER: Chyba při čtení "${check}.json".`);
+                        debug(`WORKER: Chyba při čtení "${check}.json".`);
                     }
                 });
             });
         } else {
-            console.log('WORKER: Nenalezeny žádné záznamy ke zpracování.');
+            debug('WORKER: Nenalezeny žádné záznamy ke zpracování.');
         }
     });
 };
@@ -72,7 +74,7 @@ workers.validateCheckData = function(originalCheckData) {
         this.performCheck(originalCheckData);
     } else {
         // pokud kontrola selže, přeskočím záznam a zaloguji
-        console.log("WORKERS: Kontrola selhala. Jdu na další.");
+        debug('\x1b[33m%s\x1b[0m', '👾 Kontrola selhala. Jdu na další.');
     }
 };
 
@@ -107,7 +109,7 @@ workers.performCheck = function(originalCheckData) {
 
         // update checkOutcome a předat data
         checkOutcome.responseCode = status;
-        // console.log(requestDetails.hostname,status);
+        // debug(requestDetails.hostname,status);
         if (!outcomeSent) {
             this.procesCheckOutcome(originalCheckData, checkOutcome);
             outcomeSent = true;
@@ -167,10 +169,10 @@ workers.procesCheckOutcome = function(originalCheckData, checkOutcome) {
             if (alertWarranted) {
                 this.alertUserToStatusChange(newCheckData);
             } else {
-                console.log('WORKERS: Check state se nezměnil. Upozornění neproběhlo.');
+                debug('\x1b[33m%s\x1b[0m', '👾 Check state se nezměnil. Upozornění neproběhlo.');
             }
         } else {
-            console.log('WORKERS: Chyba při ukládání updatu při kontrole.');
+            debug('\x1b[33m%s\x1b[0m', '👾 Chyba při ukládání updatu při kontrole.');
         }
     });
 };
@@ -182,9 +184,9 @@ workers.alertUserToStatusChange = function(newCheckData) {
     // odeslání SMS pomocí pomocné fce
     helpers.sendTwilioSMS(newCheckData.phone, msg, (err) => {
         if (!err) {
-            console.log('WORKERS: Zpráva pro uživatele byla odeslána.', msg);
+            debug('\x1b[33m%s\x1b[0m', '👾 Zpráva pro uživatele byla odeslána.', msg);
         } else {
-            console.log('WORKERS: Zprávu se nepodařilo odeslat.', msg);
+            debug('\x1b[33m%s\x1b[0m', '👾 Zprávu se nepodařilo odeslat.', msg);
         }
     });
 };
@@ -207,9 +209,9 @@ workers.log = function(originalCheckData, checkOutcome, state, alertWarranted, t
     // append (zapsat) log do souboru
     _logs.append(logFileName, stringLogData, (err) => {
         if (!err) {
-            console.log('WORKERS: Log uložen.');
+            debug('\x1b[33m%s\x1b[0m', '👾 Log uložen.');
         } else {
-            console.log('WORKERS: Chyba při ukládání do logo.');
+            debug('\x1b[33m%s\x1b[0m', '👾 Chyba při ukládání do logo.');
         }
     })
 };
@@ -229,18 +231,18 @@ workers.rotateLogs = function() {
                         // truncate the log, vyčistit původní soubor
                         _logs.truncate(logId, (err) => {
                             if (!err) {
-                                console.log('WORKERS: Log soubor vyprázdněn.');
+                                debug('\x1b[33m%s\x1b[0m', '👾 Log soubor vyprázdněn.');
                             } else {
-                                console.log('WORKERS: Chyba při čištění logu.');
+                                debug('\x1b[33m%s\x1b[0m', '👾 Chyba při čištění logu.');
                             }
                         });
                     } else {
-                        console.log('WORKERS: Chyba při kompresi souboru.');
+                        debug('\x1b[33m%s\x1b[0m', '👾 Chyba při kompresi souboru.');
                     }
                 });
             });
         } else {
-            console.log('WORKERS: Neexistují logy ke kompresi.');
+            debug('\x1b[33m%s\x1b[0m', '👾 Neexistují logy ke kompresi.');
         }
     });
 };
@@ -254,7 +256,7 @@ workers.logRotationLoop = function() {
 
 // init workers
 workers.init = function() {
-    console.log('\x1b[33m%s\x1b[0m','WORKER IS 🏃‍ ‍‍ 🏃‍ ‍‍ 🏃‍ ‍‍');
+    console.log('\x1b[33m%s\x1b[0m','👾 WORKER IS 🏃‍');
 
     // spusit kontrolu všech checks
     this.gatherAllChecks();

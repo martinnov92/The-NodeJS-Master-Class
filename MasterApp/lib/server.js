@@ -2,7 +2,9 @@ const fs = require('fs');
 const url = require('url'); // url module pro parsování a práci s url
 const path = require('path');
 const http = require('http');
+const util = require('util');
 const https = require('https');
+const debug = util.debuglog('server'); // TODO: použití NODE_DEBUG=server
 const StringDecoder = require('string_decoder').StringDecoder; // string decoder pro práci s Buffer
 
 // moje soubory
@@ -76,7 +78,11 @@ server.unifiedServer = function(req, res) {
             res.end(payloadString);
 
             // zalogovat cestu
-            console.log(`Returning this response: ${statusCode} (status code), ${payloadString}`);
+            if (statusCode === 200) {
+                debug('\x1b[32m%s\x1b[0m', `🖥  Request: ${req.url}.`);
+            } else {
+                debug('\x1b[31m%s\x1b[0m', `🖥  Request: ${req.url}.`);
+            }
         });
     });
 };
@@ -96,12 +102,12 @@ server.httpsServer = https.createServer(this.httpsServerOptions, server.unifiedS
 server.init = function() {
     // start http server
     this.httpServer.listen(config.http, () => {
-        console.log('\x1b[36m%s\x1b[0m', `The server is listening on port ${config.http}.`);
+        console.log('\x1b[36m%s\x1b[0m', `🖥  The server is listening on port ${config.http}.`);
     });
 
     // start https server
     this.httpsServer.listen(config.https, () => {
-        console.log('\x1b[36m%s\x1b[0m', `The server is listening on port ${config.https}.`);
+        console.log('\x1b[36m%s\x1b[0m', `🖥  The server is listening on port ${config.https}. 🔐`);
     });
 };
 
