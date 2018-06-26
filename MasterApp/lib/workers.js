@@ -9,6 +9,7 @@ const http = require('http');
 const https = require('https');
 
 const _data = require('./data');
+const _logs = require('./logs');
 const helpers = require('./helpers');
 
 // workers object
@@ -57,7 +58,7 @@ workers.validateCheckData = function(originalCheckData) {
     // nastavení hodnot pro poslední kontrolu a stav jestli stránka byla, nebo nebyla dostupná
     originalCheckData.state = typeof(originalCheckData.state) == 'string' && ['up','down'].indexOf(originalCheckData.state) > -1 ? originalCheckData.state : 'down';
     originalCheckData.lastChecked = typeof(originalCheckData.lastChecked) == 'number' && originalCheckData.lastChecked > 0 ? originalCheckData.lastChecked : false;
-  
+
     // If all checks pass, pass the data along to the next step in the process
     if(
         originalCheckData.id &&
@@ -106,7 +107,7 @@ workers.performCheck = function(originalCheckData) {
 
         // update checkOutcome a předat data
         checkOutcome.responseCode = status;
-
+        // console.log(requestDetails.hostname,status);
         if (!outcomeSent) {
             this.procesCheckOutcome(originalCheckData, checkOutcome);
             outcomeSent = true;
@@ -153,8 +154,11 @@ workers.procesCheckOutcome = function(originalCheckData, checkOutcome) {
 
     // update check data
     const newCheckData = {...originalCheckData};
+    const timeOfCheck = Date.now();
     newCheckData.state = state;
-    newCheckData.lastChecked = Date.now();
+    newCheckData.lastChecked = timeOfCheck;
+
+    this.log(originalCheckData, checkOutcome, state, alertWarranted, timeOfCheck);
 
     // uložit na disk
     _data.update('checks', newCheckData.id, newCheckData, (err) => {
@@ -185,6 +189,69 @@ workers.alertUserToStatusChange = function(newCheckData) {
     });
 };
 
+//
+workers.log = function(originalCheckData, checkOutcome, state, alertWarranted, timeOfCheck) {
+    const logData = {
+        state: state,
+        time: timeOfCheck,
+        outcome: checkOutcome,
+        alert: alertWarranted,
+        check: originalCheckData,
+    };
+
+    const stringLogData = JSON.stringify(logData, null, 4);
+
+    // název logu
+    const logFileName = originalCheckData.id;
+
+    // append (zapsat) log do souboru
+    _logs.append(logFileName, stringLogData, (err) => {
+        if (!err) {
+            console.log('WORKERS: Log uložen.');
+        } else {
+            console.log('WORKERS: Chyba při ukládání do logo.');
+        }
+    })
+};
+
+// komprese logů
+workers.rotateLogs = function() {
+    // seznam všechn nezmenšených logů
+    _logs.list(false, (err, logs) => {
+        if (!err && logs && logs.length > 0) {
+            logs.forEach((log) => {
+                // kompress data do jiného souboru
+                const logId = log.replace('.log', '');
+                const newFileId = `${logId}-${Date.now()}`;
+
+                _logs.compress(logId, newFileId, (err) => {
+                    if (!err) {
+                        // truncate the log, vyčistit původní soubor
+                        _logs.truncate(logId, (err) => {
+                            if (!err) {
+                                console.log('WORKERS: Log soubor vyprázdněn.');
+                            } else {
+                                console.log('WORKERS: Chyba při čištění logu.');
+                            }
+                        });
+                    } else {
+                        console.log('WORKERS: Chyba při kompresi souboru.');
+                    }
+                });
+            });
+        } else {
+            console.log('WORKERS: Neexistují logy ke kompresi.');
+        }
+    });
+};
+
+// časovač na spuštění rotateLogs jednou za den
+workers.logRotationLoop = function() {
+    setInterval(() => {
+        this.rotateLogs();
+    }, 1000 * 60 * 60 * 24); // jednou za den
+};
+
 // init workers
 workers.init = function() {
     console.log('\x1b[33m%s\x1b[0m','WORKER IS 🏃‍ ‍‍ 🏃‍ ‍‍ 🏃‍ ‍‍');
@@ -194,6 +261,12 @@ workers.init = function() {
 
     // spustit cyklus, aby se kontrola prováděla sama
     this.loop();
+
+    // spustit kompresi logů
+    this.rotateLogs();
+
+    // komprese logů jednou za 24 hod.
+    this.logRotationLoop();
 };
 
 module.exports = workers;

@@ -12,3 +12,4 @@ MasterApp/https
 MasterApp/.data/users/*
 MasterApp/.data/tokens/*
 MasterApp/.data/checks/*
+MasterApp/.logs/*
