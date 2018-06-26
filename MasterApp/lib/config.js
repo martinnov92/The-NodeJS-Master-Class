@@ -4,6 +4,13 @@
 
 const environments = {};
 
+const templateGlobals = {
+    appName: 'Kontrola webů',
+    companyName: 'Nefirma',
+    yearCreated: '2018',
+    baseUrl: 'http://localhost:3000', // TODO: změnit pro produkci
+};
+
 // staging (dev, default) environment 
 environments.staging = {
     http: 3000,
@@ -17,6 +24,7 @@ environments.staging = {
         authToken: '9455e3eb3109edc12e3d8c92768f7a67',
         fromPhone: '+15005550006'
     },
+    templateGlobals,
     hashingSecret: 'martinkova skvela aplikace',
 };
 
@@ -33,6 +41,7 @@ environments.production = {
         authToken: '9455e3eb3109edc12e3d8c92768f7a67',
         fromPhone: '+15005550006'
     },
+    templateGlobals,
     hashingSecret: 'martinkova skvela aplikace',
 };
 

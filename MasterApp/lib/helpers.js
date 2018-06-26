@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const https = require('https');
 const crypto = require('crypto');
 const queryString = require('querystring');
@@ -105,5 +107,71 @@ helpers.sendTwilioSMS = (phone, msg, callback) => {
         callback(400, { 'Error': 'Chybné nebo neúplné údaje.' });
     }
 };
+
+// TEMPLATE HELPERS - získat string z template
+helpers.getTemplate = function(templateName, data, callback) {
+    data = typeof data === 'object' && data !== null ? data : {};
+    templateName = (typeof templateName === 'string' && templateName.length > 0) ? templateName : false;
+
+    if (templateName) {
+        const templatesDir = path.join(__dirname, '/../templates/');
+        fs.readFile(`${templatesDir}${templateName}.html`, 'utf8', (err, str) => {
+            if (!err && str && str.length > 0) {
+                const finalString = this.interpolate(str, data);
+                callback(false, finalString);
+            } else {
+                callback('Šablona nenalezena.');
+            }
+        });
+    } else {
+        callback('Neplatný název šablony.');
+    }
+};
+
+// přidání hlavičky a patičky ke stringu a spojit do jedné šablony
+helpers.addUniversalTemplates = (str, data, callback) => {
+    str = typeof str === 'string' && str.length > 0 ? str : false;
+    data = typeof data === 'object' && data !== null ? data : {};
+
+    // header
+    helpers.getTemplate('_header', data, (err, headerStr) => {
+        if (!err && headerStr) {
+            helpers.getTemplate('_footer', data, (err, footerStr) => {
+                if (!err && headerStr) {
+                    const htmlString = headerStr + str + footerStr;
+                    callback(false, htmlString);
+                } else {
+                    callback('Šablona nenalezena.');
+                }
+            });
+        } else {
+            callback('Šablona nenalezena.');
+        }
+    });
+};
+
+// získat string a data object a najít/nahradit klíče v textu, string interpolation
+helpers.interpolate = (str, data) => {
+    str = typeof str === 'string' && str.length > 0 ? str : false;
+    data = typeof data === 'object' && data !== null ? data : {};
+
+    // přiřazení template globals do data object s předponou "global"
+    for (let keyName in config.templateGlobals) {
+        if (config.templateGlobals.hasOwnProperty(keyName)) {
+            data['global.' + keyName] = config.templateGlobals[keyName];
+        }
+    }
+
+    // pro každý klíč v objeku, vložím jejich hodnotu do stringu
+    for (let key in data) {
+        if (data.hasOwnProperty(key) && typeof data[key] === 'string') {
+            const replace = data[key];
+            const find = `{${key}}`;
+            str = str.replace(find, replace);
+        }
+    }
+
+    return str;
+}
 
 module.exports = helpers;

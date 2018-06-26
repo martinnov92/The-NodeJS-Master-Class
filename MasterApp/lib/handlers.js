@@ -9,6 +9,44 @@ const helpers = require('./helpers');
 // definování handlerů pro router
 const handlers = {};
 
+/**
+ * ! HTML HANDLERS
+*/
+
+handlers.index = (data, callback) => {
+    // odmítnout všechno co není get
+    if (data.method === 'get') {
+        // připravit data pro najít/nahradit (string interpolation)
+        const templateData = {
+            'head.title': 'Hlavní strana',
+            'head.description': 'Hlavní strana - popisek',
+            'body.class': 'index',
+            'body.title': 'Body title',
+        };
+
+        // načíst index.html template jako string
+        helpers.getTemplate('index', templateData, (err, str) => {
+            if (!err && str) {
+                // přidat hlavičku a patičku
+                helpers.addUniversalTemplates(str, templateData, (err, str) => {
+                    if (!err && str) {
+                        callback(200, str, 'html');
+                    } else {
+                        callback(500, undefined, 'html');
+                    }
+                })
+            } else {
+                callback(500, undefined, 'html');
+            }
+        });
+    } else {
+        callback(405, undefined, 'html');
+    }
+};
+
+/**
+ * ! JSON API
+*/
 // Users
 handlers.users = (data, callback) => {
     const acceptableMethods = ['post', 'get', 'put', 'delete'];

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta http-equiv="content-language" content="cs-CZ">
+    <base href="{global.baseUrl}" />
+
+    <title>{head.title} | {global.appName}</title>
+    <meta name="description" content="{head.description}">
+
+    <!-- STATIC ASSETS -->
+    <link rel="stylesheet" href="public/app.css">
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+    <script type="text/javascript" src="public/app.js"></script>
+</head>
+<body class="{body.class}">
+    <!-- PAGE WRAPPER -->
+    <div class="wrapper">
+        <div class="header">
+            <!-- LOGO -->
+            <a href="/" class="logo"></a>
+
+            <!-- NAV -->
+            <ul class="mene">
+                <li>
+                    <a href="/">Domů</a>
+                </li>
+                <li>
+                    <a href="/" class="loggedOut">Registrace</a>
+                </li>
+                <li>
+                    <a href="/" class="loggedOut">Login</a>
+                </li>
+                <li>
+                    <a href="/" class="loggedIn">Přehled</a>
+                </li>
+                <li>
+                    <a href="/" class="loggedIn">Nastavení</a>
+                </li>
+                <li>
+                    <a href="/" class="loggedIn">Odhlásit se</a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- PAGE SPECIFIC CONTENT -->
+        <div class="content">

@@ -68,12 +68,21 @@ server.unifiedServer = function(req, res) {
         };
 
         // route request pro daný handler přiřazený v handlers
-        chosenHandler(data, function(statusCode = 200, payload = {}) {
-            // convert payload na string
-            const payloadString = JSON.stringify(payload);
-
+        chosenHandler(data, function(statusCode = 200, payload = {}, contentType = 'json') {
             // nastavit do headru status code, content type, ukončit přenos a odeslat odpověď
-            res.setHeader('Content-Type', 'application/json');
+            // content-specific
+            let payloadString = '';
+
+            if (contentType === 'json') {
+                res.setHeader('Content-Type', 'application/json');
+                // convert payload na string
+                payloadString = JSON.stringify(payload);
+            } else {
+                res.setHeader('Content-Type', 'text/html');
+                payloadString = typeof payload === 'string' ? payload : '';
+            }
+
+            // společná odpověď
             res.writeHead(statusCode);
             res.end(payloadString);
 
@@ -89,10 +98,28 @@ server.unifiedServer = function(req, res) {
 
 // router
 server.router = {
+    // index route
+    '': handlers.index,
+
+    // api
     'ping': handlers.ping,
-    'users': handlers.users,
-    'tokens': handlers.tokens,
-    'checks': handlers.checks,
+    'api/users': handlers.users,
+    'api/tokens': handlers.tokens,
+    'api/checks': handlers.checks,
+
+    // static sites
+
+    // uživatel
+    'session/create': handlers.sessionCreate,
+    'session/deleted': handlers.sessionDeleted,
+    'account/create': handlers.accountCreate,
+    'account/edit': handlers.accountEdit,
+    'account/deleted': handlers.accountDeleted,
+
+    // checks
+    'checks/all': handlers.checkList,
+    'checks/create': handlers.checksCreate,
+    'checks/edit': handlers.checksEdit,
 };
 
 // inicializace HTTP a HTTPS serveru
