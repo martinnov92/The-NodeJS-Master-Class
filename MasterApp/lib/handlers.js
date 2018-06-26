@@ -44,6 +44,66 @@ handlers.index = (data, callback) => {
     }
 };
 
+handlers.favicon = (data, callback) => {
+    if (data.method === 'get') {
+        // načíst faviconu
+        helpers.getStaticAsset('favicon.ico', (err, data) => {
+            if (!err && data) {
+                callback(200, data, 'favicon');
+            } else {
+                callback(500)
+            }
+        });
+    } else {
+        callback(405, undefined, 'html');
+    }
+};
+
+handlers.public = (data, callback) => {
+    if (data.method === 'get') {
+        // zjistit jaké soubory jsou požadované
+        const trimmedAssetName = data.trimmedPath.replace('public/', '').trim();
+
+        if (trimmedAssetName.length > 0) {
+            // načíst data
+            helpers.getStaticAsset(trimmedAssetName, (err, data) => {
+                if (!err && data) {
+                    // zjistit typ souboru (MIME type), pokud nezjistím typ, defaultně nastavím text/plain
+                    let contentType = 'plain';
+
+                    if (trimmedAssetName.indexOf('.js') > -1) {
+                        contentType = 'js';
+                    }
+
+                    if (trimmedAssetName.indexOf('.css') > -1) {
+                        contentType = 'css';
+                    }
+
+                    if (trimmedAssetName.indexOf('.png') > -1) {
+                        contentType = 'png';
+                    }
+
+                    if (trimmedAssetName.indexOf('.jpg') > -1) {
+                        contentType = 'jpg';
+                    }
+
+                    if (trimmedAssetName.indexOf('.ico') > -1) {
+                        contentType = 'favicon';
+                    }
+
+                    callback(200, data, contentType);
+                } else {
+                    callback(404);
+                }
+            });
+        } else {
+            callback(404);
+        }
+    } else {
+        callback(405, undefined, 'html');
+    }
+}
+
 /**
  * ! JSON API
 */

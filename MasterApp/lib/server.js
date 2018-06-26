@@ -56,7 +56,9 @@ server.unifiedServer = function(req, res) {
         buffer += decoder.end();
 
         // zvolení handleru, který potřebuje tenhle request, pokud neexistuje => vrátit 404
-        const chosenHandler = typeof(server.router[trimmedPath]) !== 'undefined' ? server.router[trimmedPath] : handlers.notFound;
+        let chosenHandler = typeof(server.router[trimmedPath]) !== 'undefined' ? server.router[trimmedPath] : handlers.notFound;
+        // pokud request vede na public dir, použíj public handler
+        chosenHandler = trimmedPath.indexOf('public/') > -1 ? handlers.public : chosenHandler;
 
         // vytvoření data objectu pro předání do handleru
         const data = {
@@ -77,9 +79,41 @@ server.unifiedServer = function(req, res) {
                 res.setHeader('Content-Type', 'application/json');
                 // convert payload na string
                 payloadString = JSON.stringify(payload);
-            } else {
+            }
+
+            if (contentType === 'html') {
                 res.setHeader('Content-Type', 'text/html');
                 payloadString = typeof payload === 'string' ? payload : '';
+            }
+
+            if (contentType === 'js') {
+                res.setHeader('Content-Type', 'text/javascript');
+                payloadString = typeof payload !== 'undefined' ? payload : '';
+            }
+
+            if (contentType === 'css') {
+                res.setHeader('Content-Type', 'text/css');
+                payloadString = typeof payload !== 'undefined' ? payload : '';
+            }
+
+            if (contentType === 'png') {
+                res.setHeader('Content-Type', 'image/png');
+                payloadString = typeof payload !== 'undefined' ? payload : '';
+            }
+
+            if (contentType === 'jpg') {
+                res.setHeader('Content-Type', 'image/jpeg');
+                payloadString = typeof payload !== 'undefined' ? payload : '';
+            }
+
+            if (contentType === 'favicon') {
+                res.setHeader('Content-Type', 'image/x-icon');
+                payloadString = typeof payload !== 'undefined' ? payload : '';
+            }
+
+            if (contentType === 'plain') {
+                res.setHeader('Content-Type', 'text/plain');
+                payloadString = typeof payload !== 'undefined' ? payload : '';
             }
 
             // společná odpověď
@@ -108,6 +142,8 @@ server.router = {
     'api/checks': handlers.checks,
 
     // static sites
+    'public': handlers.public,
+    'favicon.ico': handlers.favicon,
 
     // uživatel
     'session/create': handlers.sessionCreate,

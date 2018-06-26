@@ -174,4 +174,23 @@ helpers.interpolate = (str, data) => {
     return str;
 }
 
+// servírování statických souborů
+helpers.getStaticAsset = (fileName, callback) => {
+    fileName = typeof fileName === 'string' && fileName.length > 0 ? fileName : false;
+
+    if (fileName) {
+        const publicDir = path.join(__dirname, '/../public/');
+
+        fs.readFile(`${publicDir}${fileName}`, (err, data) => {
+            if (!err && data) {
+                callback(false, data);
+            } else {
+                callback('Soubor nenalezen');
+            }
+        });
+    } else {
+        callback('Špatný název souboru.');
+    }
+};
+
 module.exports = helpers;
