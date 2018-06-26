@@ -3,7 +3,7 @@
 */
 
 const _data = require('./data');
-const config = require('../config');
+const config = require('./config');
 const helpers = require('./helpers');
 
 // definování handlerů pro router

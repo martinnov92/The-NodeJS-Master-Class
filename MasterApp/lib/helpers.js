@@ -2,7 +2,7 @@ const https = require('https');
 const crypto = require('crypto');
 const queryString = require('querystring');
 
-const config = require('../config');
+const config = require('../lib/config');
 
 // container
 const helpers = {};

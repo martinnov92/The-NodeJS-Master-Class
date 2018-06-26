@@ -13,7 +13,7 @@ const app = {
         server.init();
 
         // start workers
-        // workers.init();
+        workers.init();
     },
 };
 
