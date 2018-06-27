@@ -3,6 +3,7 @@
 * Hlavní soubor pro API
 */
 
+const cli = require('./lib/cli');
 const server = require('./lib/server');
 const workers = require('./lib/workers');
 
@@ -14,6 +15,11 @@ const app = {
 
         // start workers
         workers.init();
+
+        // start CLI, ale musí se spustit poslední
+        setTimeout(() => {
+            cli.init();
+        }, 0);
     },
 };
 
