@@ -975,4 +975,11 @@ handlers.notFound = (data, callback) => {
     callback(404);
 };
 
+// EXAMPLE ERROR handlers
+handlers.exampleError = function() {
+    const err = new Error('💩💩💩💩💩');
+
+    throw(err);
+};
+
 module.exports = handlers;

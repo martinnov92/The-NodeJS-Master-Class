@@ -229,6 +229,7 @@ cli.init = function() {
 
     // spustit "interface"
     // TODO: zjistit více informací v dokumentaci
+    // TODO: zapsat
     const _interface = readline.createInterface({
         input: process.stdin,
         output: process.stdout,

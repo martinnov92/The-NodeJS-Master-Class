@@ -70,65 +70,75 @@ server.unifiedServer = function(req, res) {
         };
 
         // route request pro daný handler přiřazený v handlers
-        chosenHandler(data, function(statusCode = 200, payload = {}, contentType = 'json') {
-            // nastavit do headru status code, content type, ukončit přenos a odeslat odpověď
-            // content-specific
-            let payloadString = '';
-
-            if (contentType === 'json') {
-                res.setHeader('Content-Type', 'application/json');
-                // convert payload na string
-                payloadString = JSON.stringify(payload);
-            }
-
-            if (contentType === 'html') {
-                res.setHeader('Content-Type', 'text/html');
-                payloadString = typeof payload === 'string' ? payload : '';
-            }
-
-            if (contentType === 'js') {
-                res.setHeader('Content-Type', 'text/javascript');
-                payloadString = typeof payload !== 'undefined' ? payload : '';
-            }
-
-            if (contentType === 'css') {
-                res.setHeader('Content-Type', 'text/css');
-                payloadString = typeof payload !== 'undefined' ? payload : '';
-            }
-
-            if (contentType === 'png') {
-                res.setHeader('Content-Type', 'image/png');
-                payloadString = typeof payload !== 'undefined' ? payload : '';
-            }
-
-            if (contentType === 'jpg') {
-                res.setHeader('Content-Type', 'image/jpeg');
-                payloadString = typeof payload !== 'undefined' ? payload : '';
-            }
-
-            if (contentType === 'favicon') {
-                res.setHeader('Content-Type', 'image/x-icon');
-                payloadString = typeof payload !== 'undefined' ? payload : '';
-            }
-
-            if (contentType === 'plain') {
-                res.setHeader('Content-Type', 'text/plain');
-                payloadString = typeof payload !== 'undefined' ? payload : '';
-            }
-
-            // společná odpověď
-            res.writeHead(statusCode);
-            res.end(payloadString);
-
-            // zalogovat cestu
-            if (statusCode === 200) {
-                debug('\x1b[32m%s\x1b[0m', `🖥  Request: ${req.url}.`);
-            } else {
-                debug('\x1b[31m%s\x1b[0m', `🖥  Request: ${req.url}.`);
-            }
-        });
+        try {
+            chosenHandler(data, function(statusCode = 200, payload = {}, contentType = 'json') {
+                server.processHandlerResponse(res, method, trimmedPath, statusCode, payload, contentType);
+            });
+        } catch (err) {
+            console.log('\x1b[36m%s\x1b[0m', `🖥 Chyba na serveru: ${err}.`);
+            server.processHandlerResponse(res, method, trimmedPath, 500, { Error: 'Nastala neznámá chyba.' }, 'html');
+        }
     });
 };
+
+// zpracovat response z handlers
+server.processHandlerResponse = function(res, method, trimmedPath, statusCode, payload, contentType) {
+    // nastavit do headru status code, content type, ukončit přenos a odeslat odpověď
+    // content-specific
+    let payloadString = '';
+
+    if (contentType === 'json') {
+        res.setHeader('Content-Type', 'application/json');
+        // convert payload na string
+        payloadString = JSON.stringify(payload);
+    }
+
+    if (contentType === 'html') {
+        res.setHeader('Content-Type', 'text/html');
+        payloadString = typeof payload === 'string' ? payload : '';
+    }
+
+    if (contentType === 'js') {
+        res.setHeader('Content-Type', 'text/javascript');
+        payloadString = typeof payload !== 'undefined' ? payload : '';
+    }
+
+    if (contentType === 'css') {
+        res.setHeader('Content-Type', 'text/css');
+        payloadString = typeof payload !== 'undefined' ? payload : '';
+    }
+
+    if (contentType === 'png') {
+        res.setHeader('Content-Type', 'image/png');
+        payloadString = typeof payload !== 'undefined' ? payload : '';
+    }
+
+    if (contentType === 'jpg') {
+        res.setHeader('Content-Type', 'image/jpeg');
+        payloadString = typeof payload !== 'undefined' ? payload : '';
+    }
+
+    if (contentType === 'favicon') {
+        res.setHeader('Content-Type', 'image/x-icon');
+        payloadString = typeof payload !== 'undefined' ? payload : '';
+    }
+
+    if (contentType === 'plain') {
+        res.setHeader('Content-Type', 'text/plain');
+        payloadString = typeof payload !== 'undefined' ? payload : '';
+    }
+
+    // společná odpověď
+    res.writeHead(statusCode);
+    res.end(payloadString);
+
+    // zalogovat cestu
+    if (statusCode === 200) {
+        debug('\x1b[32m%s\x1b[0m', `🖥  Request: ${trimmedPath}.`);
+    } else {
+        debug('\x1b[31m%s\x1b[0m', `🖥  Request: ${trimmedPath}.`);
+    }
+}
 
 // router
 server.router = {
@@ -156,6 +166,9 @@ server.router = {
     'checks/all': handlers.checkList,
     'checks/create': handlers.checksCreate,
     'checks/edit': handlers.checksEdit,
+
+    // ERROR ROUTE
+    'examples/error': handlers.exampleError,
 };
 
 // inicializace HTTP a HTTPS serveru
