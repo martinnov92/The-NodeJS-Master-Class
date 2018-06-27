@@ -20,29 +20,26 @@
     <div class="wrapper">
         <div class="header">
             <!-- LOGO -->
-            <a href="/" class="logo"></a>
+            <a href="/" class="logo">
+                <img src="public/logo.png" alt="Logo">
+            </a>
 
             <!-- NAV -->
-            <ul class="mene">
-                <li class="logo">
-                    <a href="/">
-                        <img src="public/logo.png" alt="Logo">
-                    </a>
+            <ul class="menu">
+                <li class="loggedOut">
+                    <a href="/account/create">Registrace</a>
                 </li>
-                <li>
-                    <a href="/account/create" class="loggedOut">Registrace</a>
+                <li class="loggedOut">
+                    <a href="/session/create">Login</a>
                 </li>
-                <li>
-                    <a href="/session/create" class="loggedOut">Login</a>
+                <li class="loggedIn">
+                    <a href="/checks/all">Přehled</a>
                 </li>
-                <li>
-                    <a href="/checks/all" class="loggedIn">Přehled</a>
+                <li class="loggedIn">
+                    <a href="/account/edit">Nastavení</a>
                 </li>
-                <li>
-                    <a href="/account/edit" class="loggedIn">Nastavení</a>
-                </li>
-                <li>
-                    <a href="#" class="loggedIn">Odhlásit se</a>
+                <li class="loggedIn">
+                    <a href="#" id="logoutButton">Odhlásit se</a>
                 </li>
             </ul>
         </div>

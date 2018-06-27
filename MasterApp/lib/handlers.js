@@ -18,14 +18,254 @@ handlers.index = (data, callback) => {
     if (data.method === 'get') {
         // připravit data pro najít/nahradit (string interpolation)
         const templateData = {
-            'head.title': 'Hlavní strana',
-            'head.description': 'Hlavní strana - popisek',
+            'head.title': 'Uptime monitoring',
+            'head.description': 'Uptime monitoring',
             'body.class': 'index',
-            'body.title': 'Body title',
+            'body.title': 'Uptime monitoring',
         };
 
         // načíst index.html template jako string
         helpers.getTemplate('index', templateData, (err, str) => {
+            if (!err && str) {
+                // přidat hlavičku a patičku
+                helpers.addUniversalTemplates(str, templateData, (err, str) => {
+                    if (!err && str) {
+                        callback(200, str, 'html');
+                    } else {
+                        callback(500, undefined, 'html');
+                    }
+                })
+            } else {
+                callback(500, undefined, 'html');
+            }
+        });
+    } else {
+        callback(405, undefined, 'html');
+    }
+};
+
+handlers.accountCreate = (data, callback) => {
+    // odmítnout všechno co není get
+    if (data.method === 'get') {
+        // připravit data pro najít/nahradit (string interpolation)
+        const templateData = {
+            'head.title': 'Registrace',
+            'head.description': 'Registrace',
+            'body.class': 'accountCreate',
+        };
+
+        // načíst index.html template jako string
+        helpers.getTemplate('accountCreate', templateData, (err, str) => {
+            if (!err && str) {
+                // přidat hlavičku a patičku
+                helpers.addUniversalTemplates(str, templateData, (err, str) => {
+                    if (!err && str) {
+                        callback(200, str, 'html');
+                    } else {
+                        callback(500, undefined, 'html');
+                    }
+                })
+            } else {
+                callback(500, undefined, 'html');
+            }
+        });
+    } else {
+        callback(405, undefined, 'html');
+    }
+};
+
+handlers.sessionCreate = (data, callback) => {
+    // odmítnout všechno co není get
+    if (data.method === 'get') {
+        // připravit data pro najít/nahradit (string interpolation)
+        const templateData = {
+            'head.title': 'Přihlášení',
+            'head.description': 'Přihlášení',
+            'body.class': 'sessionCreate',
+        };
+
+        // načíst index.html template jako string
+        helpers.getTemplate('sessionCreate', templateData, (err, str) => {
+            if (!err && str) {
+                // přidat hlavičku a patičku
+                helpers.addUniversalTemplates(str, templateData, (err, str) => {
+                    if (!err && str) {
+                        callback(200, str, 'html');
+                    } else {
+                        callback(500, undefined, 'html');
+                    }
+                })
+            } else {
+                callback(500, undefined, 'html');
+            }
+        });
+    } else {
+        callback(405, undefined, 'html');
+    }
+};
+
+handlers.sessionDeleted = (data, callback) => {
+    // odmítnout všechno co není get
+    if (data.method === 'get') {
+        // připravit data pro najít/nahradit (string interpolation)
+        const templateData = {
+            'head.title': 'Odhlášeno',
+            'head.description': 'Odhlášeno',
+            'body.class': 'sessionDeleted',
+        };
+
+        // načíst index.html template jako string
+        helpers.getTemplate('sessionDeleted', templateData, (err, str) => {
+            if (!err && str) {
+                // přidat hlavičku a patičku
+                helpers.addUniversalTemplates(str, templateData, (err, str) => {
+                    if (!err && str) {
+                        callback(200, str, 'html');
+                    } else {
+                        callback(500, undefined, 'html');
+                    }
+                })
+            } else {
+                callback(500, undefined, 'html');
+            }
+        });
+    } else {
+        callback(405, undefined, 'html');
+    }
+};
+
+handlers.accountEdit = (data, callback) => {
+    // odmítnout všechno co není get
+    if (data.method === 'get') {
+        // připravit data pro najít/nahradit (string interpolation)
+        const templateData = {
+            'head.title': 'Nastavení',
+            'head.description': 'Nastavení',
+            'body.class': 'accountEdit',
+        };
+
+        // načíst index.html template jako string
+        helpers.getTemplate('accountEdit', templateData, (err, str) => {
+            if (!err && str) {
+                // přidat hlavičku a patičku
+                helpers.addUniversalTemplates(str, templateData, (err, str) => {
+                    if (!err && str) {
+                        callback(200, str, 'html');
+                    } else {
+                        callback(500, undefined, 'html');
+                    }
+                })
+            } else {
+                callback(500, undefined, 'html');
+            }
+        });
+    } else {
+        callback(405, undefined, 'html');
+    }
+};
+
+handlers.accountDeleted = (data, callback) => {
+    // odmítnout všechno co není get
+    if (data.method === 'get') {
+        // připravit data pro najít/nahradit (string interpolation)
+        const templateData = {
+            'head.title': 'Účet odstraněn',
+            'head.description': 'Účet odstraněn',
+            'body.class': 'accountDeleted',
+        };
+
+        // načíst index.html template jako string
+        helpers.getTemplate('accountDeleted', templateData, (err, str) => {
+            if (!err && str) {
+                // přidat hlavičku a patičku
+                helpers.addUniversalTemplates(str, templateData, (err, str) => {
+                    if (!err && str) {
+                        callback(200, str, 'html');
+                    } else {
+                        callback(500, undefined, 'html');
+                    }
+                })
+            } else {
+                callback(500, undefined, 'html');
+            }
+        });
+    } else {
+        callback(405, undefined, 'html');
+    }
+};
+
+handlers.checksCreate = (data, callback) => {
+    // odmítnout všechno co není get
+    if (data.method === 'get') {
+        // připravit data pro najít/nahradit (string interpolation)
+        const templateData = {
+            'head.title': 'Vytvořit záznam',
+            'head.description': 'Vytvořit záznam',
+            'body.class': 'checksCreate',
+        };
+
+        // načíst index.html template jako string
+        helpers.getTemplate('checksCreate', templateData, (err, str) => {
+            if (!err && str) {
+                // přidat hlavičku a patičku
+                helpers.addUniversalTemplates(str, templateData, (err, str) => {
+                    if (!err && str) {
+                        callback(200, str, 'html');
+                    } else {
+                        callback(500, undefined, 'html');
+                    }
+                })
+            } else {
+                callback(500, undefined, 'html');
+            }
+        });
+    } else {
+        callback(405, undefined, 'html');
+    }
+};
+
+handlers.checkList = (data, callback) => {
+    // odmítnout všechno co není get
+    if (data.method === 'get') {
+        // připravit data pro najít/nahradit (string interpolation)
+        const templateData = {
+            'head.title': 'Vytvořit záznam',
+            'head.description': 'Vytvořit záznam',
+            'body.class': 'checksList',
+        };
+
+        // načíst index.html template jako string
+        helpers.getTemplate('checksList', templateData, (err, str) => {
+            if (!err && str) {
+                // přidat hlavičku a patičku
+                helpers.addUniversalTemplates(str, templateData, (err, str) => {
+                    if (!err && str) {
+                        callback(200, str, 'html');
+                    } else {
+                        callback(500, undefined, 'html');
+                    }
+                })
+            } else {
+                callback(500, undefined, 'html');
+            }
+        });
+    } else {
+        callback(405, undefined, 'html');
+    }
+};
+
+handlers.checksEdit = (data, callback) => {
+    // odmítnout všechno co není get
+    if (data.method === 'get') {
+        // připravit data pro najít/nahradit (string interpolation)
+        const templateData = {
+            'head.title': 'Editovat záznam',
+            'head.description': 'Editovat záznam',
+            'body.class': 'checksEdit',
+        };
+
+        // načíst index.html template jako string
+        helpers.getTemplate('checksEdit', templateData, (err, str) => {
             if (!err && str) {
                 // přidat hlavičku a patičku
                 helpers.addUniversalTemplates(str, templateData, (err, str) => {

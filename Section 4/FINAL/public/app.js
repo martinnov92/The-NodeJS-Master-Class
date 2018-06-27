@@ -79,7 +79,6 @@ app.client.request = function(headers,path,method,queryStringObject,payload,call
   // Send the payload as JSON
   var payloadString = JSON.stringify(payload);
   xhr.send(payloadString);
-
 };
 
 // Bind the logout button
