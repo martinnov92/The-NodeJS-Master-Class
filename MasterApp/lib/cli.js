@@ -1,7 +1,11 @@
+const os = require('os');
+const v8 = require('v8');
 const readline = require('readline');
 const events = require('events');
 const util = require('util');
 const debug = util.debuglog('cli');
+
+const _data = require('./data');
 
 // doporučený způsob, jak zinicializovat events
 class _events extends events {};
@@ -100,11 +104,62 @@ cli.responders.exit = function() {
 };
 
 cli.responders.stats = function() {
-    console.log('STATS');
+    const stats = {
+        'Load average': os.loadavg().join(' '),
+        'CPU Count': os.cpus().length,
+        'Free Memory': os.freemem(),
+        'Current Malloced Memory': v8.getHeapSpaceStatistics().malloced_memory,
+        'Peak Malloced Memory': v8.getHeapSpaceStatistics().peak_malloced_memory,
+        'Allocated Heap Used (%)': Math.round((v8.getHeapSpaceStatistics().used_heap_size / v8.getHeapSpaceStatistics().total_heap_size) * 100),
+        'Available Heap Allocated (%)': Math.round((v8.getHeapSpaceStatistics().total_heap_size / v8.getHeapSpaceStatistics().heap_size_limit) * 100), 
+        'Uptime': os.uptime() + ' seconds',
+    };
+
+    // zobrazit hlavičku help page, která je široká jako okno
+    cli.horizontalLine();
+    cli.centered('SYSTEM STATISTICS');
+    cli.horizontalLine();
+    cli.verticalSpace(2);
+
+    // zobrazit statistiku
+    for (let key in stats) {
+        let value = stats[key];
+        let line = `\x1b[33m${key}\x1b[0m`;
+        let padding = 60 - key.length;
+
+        for (i = 0; i < padding; i++) {
+            line += ' ';
+        }
+
+        line += value;
+        console.log(line);
+        cli.verticalSpace();
+    }
+
+    cli.verticalSpace();
+    cli.horizontalLine();
 };
 
 cli.responders.listUsers = function() {
-    console.log('LIST USERS');
+    _data.list('users', (err, users) => {
+        if (!err && users && users.length > 0) {
+            cli.verticalSpace();
+            users.forEach((id) => {
+                _data.read('users', id, (err, userData) => {
+                    if (!err && userData) {
+                        const numberOfChecks = ((typeof userData.checks === 'object') && (userData.checks instanceof Array)) ? userData.length : 0;
+                        let line = `
+                            Name: ${userData.firstName} ${userData.lastName}, Phone: ${userData.phone}
+                            Checks count: ${numberOfChecks}
+                        `;
+
+                        console.log(line);
+                        cli.verticalSpace();
+                    }
+                });
+            });
+        }
+    });
 };
 
 cli.responders.moreUserInfo = function(str) {
